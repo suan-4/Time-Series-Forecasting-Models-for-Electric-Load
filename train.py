@@ -19,7 +19,7 @@ import numpy as np
 plt.rcParams['font.family'] = 'SimHei'
 plt.rcParams['font.size'] = 15
 
-
+#这里都是加载日志，日志模板来自网上
 class PowerLoadModel:
     def __init__(self):
 
@@ -512,4 +512,5 @@ if __name__ == '__main__':
     
     # 保存模型
     pm.save_model() 
+
 
