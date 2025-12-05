@@ -1,7 +1,6 @@
 import sys
 import os
 
-# 添加项目根目录到Python路径
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
@@ -34,24 +33,23 @@ class PowerLoadPredictor:
         return True
     
     def prepare_features_for_prediction(self, predict_time, historical_data):
-        # 确保历史数据按时间排序
         historical_data['time'] = pd.to_datetime(historical_data['time'])
         historical_data = historical_data.sort_values('time').reset_index(drop=True)
         
-        # 为历史数据添加必要的日期特征
+
         historical_data['month'] = historical_data['time'].dt.month
         historical_data['day'] = historical_data['time'].dt.day
         historical_data['hour'] = historical_data['time'].dt.hour
         historical_data['weekday'] = historical_data['time'].dt.weekday
-        
-        # 创建特征字典
+        historical_data['year'] = historical_data['time'].dt.year 
+
         features = {}
         
-        # 时间特征 - 使用pandas的Timestamp来获取所有属性
         predict_timestamp = pd.Timestamp(predict_time)
         features['hour'] = predict_timestamp.hour
         features['weekday'] = predict_timestamp.weekday()
         features['month'] = predict_timestamp.month
+        features['day'] = predict_timestamp.day
         features['is_weekend'] = 1 if predict_timestamp.weekday() >= 5 else 0
         
         # 季节特征
@@ -74,15 +72,14 @@ class PowerLoadPredictor:
         else:
             features['time_period'] = 4  # 凌晨
         
-        # 确保历史数据包含足够早的数据来计算滞后特征
         latest_time = historical_data['time'].max()
         if latest_time < predict_timestamp:
             self.logger.warning('历史数据时间晚于预测时间，可能影响预测准确性')
             
         # 滞后特征
-        lag1_time = predict_timestamp - pd.Timedelta(hours=1)
-        lag24_time = predict_timestamp - pd.Timedelta(hours=24)
-        lag168_time = predict_timestamp - pd.Timedelta(hours=168)  # 一周前
+        # lag1_time = predict_timestamp - pd.Timedelta(hours=1)
+        # lag24_time = predict_timestamp - pd.Timedelta(hours=24)
+        # lag168_time = predict_timestamp - pd.Timedelta(hours=168)  
         
         # 在历史数据中查找最接近的记录
         def find_closest_load(target_time):
@@ -128,10 +125,10 @@ class PowerLoadPredictor:
             # 如果没有找到历史同期数据，使用全局平均值
             features['load_same_period_last_year'] = historical_data['power_load'].mean()
         
-        # 平衡后的特征列顺序必须与训练时一致
         feature_columns = [
             'hour', 'weekday', 'month', 'season', 'is_weekend', 'time_period',
-            'load_lag1', 'load_lag24', 'load_lag168', 'load_same_period_last_year',
+            # 'load_lag1', 'load_lag24', 'load_lag168', 
+            'load_same_period_last_year',
             'load_change_rate', 'load_change_rate_24h'  # 关键的峰值预测特征
         ]
         
@@ -147,8 +144,7 @@ class PowerLoadPredictor:
             self.logger.error('模型未加载')
             print('错误: 模型未加载，请先调用load_model()方法')
             return None
-            
-        # 构造预测时间点
+        # 构造预测时间点2
         try:
             predict_time = datetime(year, month, day, hour)
         except ValueError as e:
@@ -325,75 +321,7 @@ def predict_hour_of_day_interactive():
         print(f"发生错误: {e}")
 
 
-
-# def predict_annual_load_trend():
-
-#     # 创建预测器实例
-#     predictor = PowerLoadPredictor()
-    
-#     # 加载模型
-#     if not predictor.load_model():
-#         print("模型加载失败，无法进行预测")
-#         return
-    
-#     # 存储预测结果
-#     years = list(range(2017, 2033))  # 2017到2032年
-#     predictions = []
-    
-#     print("正在预测2017年到2032年每年7月11日5时的电力负荷...")
-    
-#     # 对每一年进行预测
-#     for year in years:
-#         try:
-#             pred = predictor.predict(year, 7, 11, 5)
-#             if pred is not None:
-#                 predictions.append(pred)
-#                 print(f"{year}年7月11日5时: {pred:.2f} MW")
-#             else:
-#                 predictions.append(np.nan)  # 如果预测失败，添加NaN值
-#         except Exception as e:
-#             print(f"{year}年预测出错: {e}")
-#             predictions.append(np.nan)
-    
-#     # 绘制趋势图
-#     plt.figure(figsize=(12, 6))
-#     plt.plot(years, predictions, marker='o', linewidth=2, markersize=6)
-#     plt.title('2017-2032年每年7月11日5时电力负荷预测趋势')
-#     plt.xlabel('年份')
-#     plt.ylabel('电力负荷 (MW)')
-#     plt.grid(True, alpha=0.3)
-    
-#     # 设置x轴刻度为整数年份
-#     plt.xticks(years, rotation=45)
-    
-#     # 添加数值标签
-#     for i, (year, pred) in enumerate(zip(years, predictions)):
-#         if not np.isnan(pred):
-#             plt.annotate(f'{pred:.0f}', (year, pred), textcoords="offset points", 
-#                         xytext=(0,10), ha='center', fontsize=8)
-    
-#     plt.tight_layout()
-#     plt.savefig('picture/annual_load_prediction_trend.png', dpi=300, bbox_inches='tight')
-#     plt.show()
-    
-#     # 打印统计信息
-#     valid_predictions = [p for p in predictions if not np.isnan(p)]
-#     if valid_predictions:
-#         print(f"\n预测统计信息:")
-#         print(f"平均负荷: {np.mean(valid_predictions):.2f} MW")
-#         print(f"最高负荷: {np.max(valid_predictions):.2f} MW")
-#         print(f"最低负荷: {np.min(valid_predictions):.2f} MW")
-
-
 if __name__ == '__main__':
-    # 运行年度趋势预测
-    # predict_annual_load_trend()
-    
-    # 交互式预测一天24小时负荷
+
     predict_hour_of_day_interactive()
     
-    # 或者直接指定日期进行预测（取消下面的注释并修改日期）
-    # predict_hour_of_day(2023, 7, 11)
-    
-    # 如果还想运行交互式预测，取消下面的注释
-    # main()2222
