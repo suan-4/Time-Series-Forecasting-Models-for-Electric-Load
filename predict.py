@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from utils.log import Logger
 from utils.common import data_preprocessing
 
-
+#这里都是加载日志，日志模板来自网上
 class PowerLoadPredictor:
     def __init__(self):
         self.model = None
@@ -293,7 +293,7 @@ def predict_hour_of_day(year, month, day):
     plt.savefig(f'picture/daily_load_prediction_{year}_{month:02d}_{day:02d}.png', dpi=300, bbox_inches='tight')
     plt.show()
     
-    # # 打印统计信息
+    # # 打印统计信息（自己看看能不能运行，我都忘了什么时候打的）
     # if valid_predictions:
     #     print(f"\n{year}年{month}月{day}日预测统计信息:")
     #     print(f"平均负荷: {np.mean(valid_predictions):.2f} MW")
@@ -325,3 +325,4 @@ if __name__ == '__main__':
 
     predict_hour_of_day_interactive()
     
+
