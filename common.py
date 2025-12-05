@@ -2,7 +2,8 @@ import numpy as np
 import  pandas as  pd
 from datetime import datetime
 def data_preprocessing():
-    data=pd.read_csv('C:/Users/何/Desktop/工作文件/计算机/demo/load_predict_project/data/train.csv')
+    #以下路径涉及我隐私，所以...了
+    data=pd.read_csv('C:/Users.../train.csv')#改为你的路径
     # data.info()
     # print(data.head())
 
@@ -31,4 +32,5 @@ def data_preprocessing():
 
 
 if __name__=='__main__':
+
     data_preprocessing()
